@@ -1,16 +1,5 @@
 #include "grid.h"
 
-void freeGrid(Grid *grid)
-{
-	for (int i = 0; i < grid->height; i++)
-	{
-		free(grid->cells[i]);
-	}
-
-	free(grid->cells);
-	free(grid);
-}
-
 // This function creates a new instance of the grid
 Grid *createGrid(unsigned int width, unsigned int height)
 {
@@ -50,6 +39,17 @@ Grid *createGrid(unsigned int width, unsigned int height)
 	return newGrid;
 }
 
+void freeGrid(Grid *grid)
+{
+	for (int i = 0; i < grid->height; i++)
+	{
+		free(grid->cells[i]);
+	}
+
+	free(grid->cells);
+	free(grid);
+}
+
 // This function, given a grid pointer, will clear all state of the grid
 bool clearGrid(Grid *grid)
 {
@@ -63,6 +63,73 @@ bool clearGrid(Grid *grid)
 		{
 			grid->cells[j][i].role = cellRole_Empty;
 			grid->cells[j][i].state = cellState_Hidden;
+		}
+	}
+
+	return true;
+}
+
+// Flip grid will change all cell states to being shown
+bool flipGrid(Grid *grid)
+{
+	// check null
+	if (!grid)
+		return false;
+
+	for (unsigned int i = 0; i < grid->width; i++)
+	{
+		for (unsigned int j = 0; j < grid->height; j++)
+		{
+			grid->cells[j][i].state = cellState_Visible;
+		}
+	}
+
+	return true;
+}
+
+// Sweep grid function takes in a coordinate and attempts to
+// "sweep" surrounding tiles by making them visible if they're not a mine
+bool sweepGrid(Grid *grid, unsigned int startX, unsigned int startY)
+{
+	// null and error checking
+	if (!grid)
+		return false;
+
+	if (startX < 0 || startX >= grid->width)
+		return false;
+
+	if (startY < 0 || startY >= grid->height)
+		return false;
+
+	// Check the surroundings
+	for (int dy = startY - 1; dy <= startY + 1; dy++)
+	{
+		for (int dx = startX - 1; dx <= startX + 1; dx++)
+		{
+			// Skip checking if these conditions are true
+			if (dx < 0 || dx >= grid->width)
+				continue;
+			if (dy < 0 || dy >= grid->height)
+				continue;
+			if (dx == startX && dy == startY)
+				continue;
+
+			// Skip sweeping if current cell is already visible
+			Cell *currentCell = &(grid->cells[dy][dx]);
+			if (currentCell->state != cellState_Hidden)
+				continue;
+
+			if (currentCell->role == cellRole_Empty)
+			{
+				// show visible
+				currentCell->state = cellState_Visible;
+
+				// Auto reveal surroundings if cell is blank and has 0 mines surrounding it
+				if (currentCell->value == 0)
+				{
+					sweepGrid(grid, dx, dy);
+				}
+			}
 		}
 	}
 
@@ -145,75 +212,12 @@ unsigned int countSurroundingMines(Grid *grid, int x, int y)
 	return count;
 }
 
-// Flip grid will change all cell states to being shown
-bool flipGrid(Grid *grid)
-{
-	// check null
-	if (!grid)
-		return false;
-
-	for (unsigned int i = 0; i < grid->width; i++)
-	{
-		for (unsigned int j = 0; j < grid->height; j++)
-		{
-			grid->cells[j][i].state = cellState_Visible;
-		}
-	}
-
-	return true;
-}
-
-// Sweep grid function takes in a coordinate and attempts to
-// "sweep" surrounding tiles by making them visible if they're not a mine
-bool sweepGrid(Grid *grid, unsigned int startX, unsigned int startY)
-{
-	// null and error checking
-	if (!grid)
-		return false;
-
-	if (startX < 0 || startX >= grid->width)
-		return false;
-
-	if (startY < 0 || startY >= grid->height)
-		return false;
-
-	// Check the surroundings
-	for (int dy = startY - 1; dy <= startY + 1; dy++)
-	{
-		for (int dx = startX - 1; dx <= startX + 1; dx++)
-		{
-			// Skip checking if these conditions are true
-			if (dx < 0 || dx >= grid->width)
-				continue;
-			if (dy < 0 || dy >= grid->height)
-				continue;
-			if (dx == startX && dy == startY)
-				continue;
-
-			// Skip sweeping if current cell is already visible
-			Cell *currentCell = &(grid->cells[dy][dx]);
-			if (currentCell->state != cellState_Hidden)
-				continue;
-
-			if (currentCell->role == cellRole_Empty)
-			{
-				// show visible
-				currentCell->state = cellState_Visible;
-
-				// Auto reveal surroundings if cell is blank and has 0 mines surrounding it
-				if (currentCell->value == 0)
-				{
-					sweepGrid(grid, dx, dy);
-				}
-			}
-		}
-	}
-
-	return true;
-}
-
 void displayGrid(Grid *grid)
 {
+	
+	wchar_t star = 0x2605;
+	wprintf(L"%lc\n", star);
+
 	if (!grid)
 		return;
 
