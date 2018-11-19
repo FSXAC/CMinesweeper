@@ -4,7 +4,7 @@ CC = gcc
 # Compiler flags
 CFLAGS = -Wall
 
-OBJS = grid.o minesweeper.o
+OBJS = drawing.o grid.o minesweeper.o
 
 # Built target
 TARGET = minesweeper

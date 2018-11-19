@@ -212,28 +212,108 @@ unsigned int countSurroundingMines(Grid *grid, int x, int y)
 	return count;
 }
 
+void displayTopLenged(int cells)
+{
+	// Leave 3 spaces for formatting
+	//      XX-
+	printf("   ");
+
+	for (int i = 0; i < cells; i++)
+	{
+		if (i < 10)
+		{
+			printf("%2d  ", i);
+		}
+		else
+		{
+			printf("%3d ", i);
+		}
+	}
+
+	printf("\n");
+}
+
+void displayTopTickedBorder(int cells)
+{
+	printf("  ");
+	DRAW(BOXDRAW_TOP_LEFT);
+	for (int i = 0; i < cells; i++)
+	{
+		DRAW(BOXDRAW_HORIZONTAL);
+		DRAW(BOXDRAW_HORIZ_TOP);
+		DRAW(BOXDRAW_HORIZONTAL);
+
+		if (i != cells - 1)
+			DRAW(BOXDRAW_HORIZ_BOT);
+	}
+	DRAW(BOXDRAW_TOP_RIGHT);
+	printf("\n");
+}
+
+void displayGridRow(int cells)
+{
+	printf("  ");
+	DRAW(BOXDRAW_VERT_RIGHT);
+
+	for (int i = 0; i < cells; i++)
+	{
+		DRAW(BOXDRAW_HORIZONTAL);
+		DRAW(BOXDRAW_HORIZONTAL);
+		DRAW(BOXDRAW_HORIZONTAL);
+
+		if (i != cells - 1)
+			DRAW(BOXDRAW_CROSS);
+	}
+
+	DRAW(BOXDRAW_VERT_LEFT);
+
+	printf("\n");
+}
+
+void displayBottomBorder(int cells)
+{
+	printf("  ");
+	DRAW(BOXDRAW_BOT_LEFT);
+	for (int i = 0; i < cells; i++)
+	{
+		DRAW(BOXDRAW_HORIZONTAL);
+		DRAW(BOXDRAW_HORIZONTAL);
+		DRAW(BOXDRAW_HORIZONTAL);
+
+		if (i != cells - 1)
+			DRAW(BOXDRAW_HORIZ_TOP);
+	}
+	DRAW(BOXDRAW_BOT_RIGHT);
+	printf("\n");
+}
+
 void displayGrid(Grid *grid)
 {
-	
-	wchar_t star = 0x2605;
-	wprintf(L"%lc\n", star);
-
 	if (!grid)
 		return;
 
+	const unsigned int width = grid->width;
+	const unsigned int height = grid->height;
+
 	// Display
-	for (int i = 0; i < grid->height; i++)
+	for (int i = 0; i < height; i++)
 	{
 		if (i == 0)
 		{
-			printf("====\n");
+			displayTopLenged(width);
+			displayTopTickedBorder(width);
 		}
-		// else
-		// {
-		// 	printf("----");
-		// }
 
-		for (int j = 0; j < grid->width; j++)
+		// For each row
+		// Print left legend
+		printf("%2d", i);
+		DRAW(BOXDRAW_VERT_LEFT);
+
+		// Left padding
+		printf(" ");
+
+		// Display each cell formatted
+		for (int j = 0; j < width; j++)
 		{
 			enum cellRole role = grid->cells[i][j].role;
 			enum cellState state = grid->cells[i][j].state;
@@ -257,7 +337,7 @@ void displayGrid(Grid *grid)
 				}
 				else if (role == cellRole_Mine)
 				{
-					printf("%c", displayMapping_mine);
+					wprintf(L"%lc", displayMapping_mine);
 				}
 			}
 			break;
@@ -274,12 +354,22 @@ void displayGrid(Grid *grid)
 			}
 			break;
 			}
+
+			// Right border for each cell
+			printf(" ");
+			DRAW(BOXDRAW_VERTICAL);
+			printf(" ");
 		}
 
 		// next line
 		printf("\n");
+
+		// separate each line with horizontal border
+		if (i != height - 1)
+			displayGridRow(width);
 	}
 
-	// finish
-	printf("======\n\n");
+	// finish and bottom border
+	displayBottomBorder(width);
+	printf("\n");
 }

@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include "cell.h"
 #include "useful.h"
+#include "drawing.h"
 
 #define g_MAX_WIDTH 80
 #define g_MAX_HEIGHT 60
@@ -23,7 +24,7 @@ typedef struct
 enum displayMapping
 {
 	displayMapping_blank = ' ',
-	displayMapping_mine = 'X',
+	displayMapping_mine = 0x2738,
 	displayMapping_flag = 'F',
 	displayMapping_hidden = '-'
 };
@@ -46,6 +47,10 @@ void placeValues(Grid *grid);
 unsigned int countSurroundingMines(Grid *grid, int x, int y);
 
 // Grid display functions
+void displayTopLegend(int cells);
+void displayTopTickedBorder(int cells);
+void displayGridRow(int cells);
+void displayBottomBorder(int cells);
 void displayGrid(Grid *grid);
 
 #endif
