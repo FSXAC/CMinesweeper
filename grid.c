@@ -165,6 +165,11 @@ void placeMines(Grid *grid, int numMines, int x, int y)
 			continue;
 		}
 
+		if (grid->cells[randomY][randomX].role != cellRole_Empty)
+		{
+			continue;
+		}
+
 		// Else, place mine
 		grid->cells[randomY][randomX].role = cellRole_Mine;
 		placedCount++;
