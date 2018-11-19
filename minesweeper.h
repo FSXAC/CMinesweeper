@@ -57,8 +57,18 @@ enum displayMapping
 
 // Functions
 bool playMinesweeper();
+void freeGrid(Grid *grid);
 Grid *createGrid(unsigned int width, unsigned int height);
 bool clearGrid(Grid *grid);
+
+void freeGrid(Grid *grid);
+void generateRandomGrid(Grid* grid, int numMines, int x, int y);
+void placeMines(Grid *grid, int numMines, int x, int y);
+void placeValues(Grid *grid);
+unsigned int countSurroundingMines(Grid *grid, int x, int y);
+bool flipGrid(Grid* grid);
+bool sweepGrid(Grid* grid, unsigned int startX, unsigned int startY);
+
 void displayGrid(Grid *grid);
 
 #endif /* MINESWEEPER_H */

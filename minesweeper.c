@@ -1,5 +1,7 @@
 #include "minesweeper.h"
 
+const unsigned int g_MAX_WIDTH = 80;
+const unsigned int g_MAX_HEIGHT = 60;
 
 // Main function (entry point)
 int main(void)
@@ -17,20 +19,36 @@ int main(void)
 bool playMinesweeper()
 {
 	// Create a grid of cells
-	Grid* grid = createGrid(10, 10);
+	Grid* grid = createGrid(80, 30); // get instance of the grid
 	clearGrid(grid);
+	generateRandomGrid(grid, 20, 2, 2);
+
+
+	flipGrid(grid);
 	displayGrid(grid);
 
 	// FIXME: temp
+	freeGrid(grid);
 	return false;
+}
+
+void freeGrid(Grid* grid)
+{
+	for (int i = 0; i < grid->height; i++)
+	{
+		free(grid->cells[i]);
+	}
+
+	free(grid->cells);
+	free(grid);
 }
 
 // This function creates a new instance of the grid
 Grid* createGrid(unsigned int width, unsigned int height)
 {
 	// limit the size of the grid to some arbitrary value
-	width = width > 80 ? 80 : width;
-	height = height > 60 ? 60 : height;
+	width = width > g_MAX_WIDTH ? g_MAX_WIDTH : width;
+	height = height > g_MAX_HEIGHT ? g_MAX_HEIGHT : height;
 
 	// allocate memory for grid struct that holds the pointer to grid array
 	Grid* newGrid = malloc(sizeof(Grid));
@@ -83,6 +101,82 @@ bool clearGrid(Grid* grid)
 	return true;
 }
 
+// Generate random grid states
+void generateRandomGrid(Grid* grid, int numMines, int x, int y)
+{
+	if (!grid)
+		return;
+
+	// place mines
+	placeMines(grid, numMines, x, y);
+
+	// generate numbers based on placed mines
+	placeValues(grid);
+}
+
+// Places mines on the grid field, make sure that (x, y) must be empty
+void placeMines(Grid *grid, int numMines, int x, int y)
+{
+
+	int placedCount = 0;
+	while (placedCount < numMines)
+	{
+		int randomX = rand() % grid->width;
+		int randomY = rand() % grid->height;
+
+		// Check range to (x, y) and re-roll if too close
+		if (abs(randomX - x) <= 1 || abs(randomY - y) <= 1)
+		{
+			continue;
+		}
+
+		// Else, place mine
+		grid->cells[randomY][randomX].role = cellRole_Mine;
+		placedCount++;
+	}
+}
+
+// Suppose there are mines on the field, generate numbers based on surrounding mines
+void placeValues(Grid *grid)
+{
+	for (int i = 0; i < grid->height; i++)
+	{
+		for (int j = 0; j < grid->width; j++)
+		{
+			Cell* cell = &(grid->cells[i][j]);
+			if (cell->role != cellRole_Mine && cell->value == 0)
+			{
+				cell->value = countSurroundingMines(grid, j, i);
+			}
+		}
+	}
+}
+
+// Returns the number of mines surrounding a particular coord
+unsigned int countSurroundingMines(Grid *grid, int x, int y)
+{
+	unsigned int count = 0;
+	for (int i = y - 1; i <= y + 1; i++)
+	{
+		for (int j = x - 1; j <= x + 1; j++)
+		{
+			// Boundary checking
+			if (i < 0 || j >= grid->width)
+				continue;
+			if (j < 0 || i >= grid->height)
+				continue;
+
+			// Check if it's a mine
+			if (grid->cells[i][j].role == cellRole_Mine)
+			{
+				count++;
+			}
+		}
+	}
+
+	return count;
+}
+
 // Flip grid will change all cell states to being shown
 bool flipGrid(Grid* grid)
 {
@@ -101,27 +195,54 @@ bool flipGrid(Grid* grid)
 	return true;
 }
 
-// bool sweepGrid(Grid* grid, unsigned int startX, unsigned int startY)
-// {
-// 	// null and error checking
-// 	if (!grid)
-// 		return false;
+// Sweep grid function takes in a coordinate and attempts to 
+// "sweep" surrounding tiles by making them visible if they're not a mine
+bool sweepGrid(Grid* grid, unsigned int startX, unsigned int startY)
+{
+	// null and error checking
+	if (!grid)
+		return false;
 
-// 	if (startX < 0 || startX >= grid->width)
-// 		return false;
+	if (startX < 0 || startX >= grid->width)
+		return false;
 
-// 	if (startY < 0 || startY >= grid->height)
-// 		return false;
+	if (startY < 0 || startY >= grid->height)
+		return false;
 
-// 	// Recursively check grid
-// 	// check x, y-1
-// 	if (startY - 1 > 0)
-// 		sweepGrid(grid, startX, startY - 1);
+	// Check the surroundings
+	for (int dy = startY - 1; dy <= startY + 1; dy++)
+	{
+		for (int dx = startX - 1; dx <= startX + 1; dx++)
+		{
+			// Skip checking if these conditions are true
+			if (dx < 0 || dx >= grid->width)
+				continue;
+			if (dy < 0 || dy >= grid->height)
+				continue;
+			if (dx == startX && dy == startY)
+				continue;
 
-// 	// check x-1, y
-// 	// check x+1, y
-// 	// check x, y+1
-// }
+			// Skip sweeping if current cell is already visible
+			Cell* currentCell = &(grid->cells[dy][dx]);
+			if (currentCell->state != cellState_Hidden)
+				continue;
+
+			if (currentCell->role == cellRole_Empty)
+			{
+				// show visible
+				currentCell->state = cellState_Visible;
+
+				// Auto reveal surroundings if cell is blank and has 0 mines surrounding it
+				if (currentCell->value == 0)
+				{
+					sweepGrid(grid, dx, dy);
+				}
+			}
+		}
+	}
+
+	return true; 
+}
 
 void displayGrid(Grid* grid)
 {
