@@ -2,11 +2,12 @@
 #define GRID_H
 
 #include <stdlib.h>
+#include <stdio.h>
 #include "cell.h"
 #include "useful.h"
 
-const unsigned int g_MAX_WIDTH = 80;
-const unsigned int g_MAX_HEIGHT = 60;
+#define g_MAX_WIDTH 80
+#define g_MAX_HEIGHT 60
 
 // Grid - that holds the cells
 typedef struct

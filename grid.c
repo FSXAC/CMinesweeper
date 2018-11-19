@@ -277,5 +277,5 @@ void displayGrid(Grid *grid)
 	}
 
 	// finish
-	printf("======");
+	printf("======\n\n");
 }

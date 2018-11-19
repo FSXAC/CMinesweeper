@@ -2,7 +2,7 @@
 CC = gcc
 
 # Compiler flags
-CFLAGS = -g -Wall -I
+CFLAGS = -Wall
 
 OBJS = grid.o minesweeper.o
 
@@ -11,10 +11,10 @@ TARGET = minesweeper
 
 all: $(TARGET)
 
-$(TARGET): $(TARGET).c
+$(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS)
 
 clean:
-	$(RM) -f $(TARGET) *~
+	$(RM) $(OBJS) $(TARGET) *~
 
 
